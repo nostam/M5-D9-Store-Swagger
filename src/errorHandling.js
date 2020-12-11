@@ -1,3 +1,10 @@
+const badRequestHandler = (err, req, res, next) => {
+  if (err.httpStatusCode === 400) {
+    res.status(400).send("Bad request");
+  }
+  next(err);
+};
+
 const notFoundHandler = (err, req, res, next) => {
   if (err.httpStatusCode === 404) {
     res.status(404).send("Not found");
@@ -30,4 +37,5 @@ module.exports = {
   unauthorizedHandler,
   forbiddenHandler,
   catchAllHandler,
+  badRequestHandler,
 };

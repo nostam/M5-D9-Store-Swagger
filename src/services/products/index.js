@@ -10,14 +10,14 @@ const router = express.Router();
 
 const upload = multer({});
 
-const projectsImagePath = path.join(__dirname, "../../../public/img/products");
-const projectFilePath = path.join(__dirname, "products.json"); //GETTING FILEPATH TO JSON
+const productsImagePath = path.join(__dirname, "../../../public/img/products");
+const productFilePath = path.join(__dirname, "products.json"); //GETTING FILEPATH TO JSON
 
 router.get("/", async (req, res, next) => {
   try {
-    const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
-    if (projectDataBase.length > 0) {
-      res.status(201).send(projectDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+    const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+    if (productDataBase.length > 0) {
+      res.status(201).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
     } else {
       const err = {};
       err.httpStatusCode = 404;
@@ -31,12 +31,12 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
-    const singleProject = projectDataBase.filter(
-      project => project.ID === req.params.id
+    const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+    const singleProduct = productDataBase.filter(
+      product => product._id === req.params.id
     );
-    if (singleProject.length > 0) {
-      res.status(201).send(singleProject); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+    if (singleProduct.length > 0) {
+      res.status(201).send(singleProduct); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
     } else {
       const err = {};
       err.httpStatusCode = 404;
@@ -62,11 +62,11 @@ router.post(
     check("RepoURL")
       .exists()
       .isLength({ min: 1 })
-      .withMessage("You have to give a URL for the project repository"),
+      .withMessage("You have to give a URL for the product repository"),
     check("LiveURL")
       .exists()
       .isLength({ min: 1 })
-      .withMessage("You need to have a live demo of your project"),
+      .withMessage("You need to have a live demo of your product"),
     check("StudentID")
       .exists()
       .isLength({ min: 1 })
@@ -80,60 +80,106 @@ router.post(
       err.httpStatusCode = 400;
       next(err);
     } else {
-      const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
-      const newProject = req.body; //GETS THE REQUEST BODY
-      newProject.ID = uniqid(); //GIVES BODY NEW ID
-      newProject.CreationDate = new Date(); //GIVES BODY CREATION DATE
-      projectDataBase.push(newProject); //ADDS BODY TO DATABSE
-      await writeDB(projectFilePath, projectDataBase); //OVERWRITES OLD DATABASE WITH NEW DATABASE
-      res.status(201).send(projectDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+      const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+      const newProduct = req.body; //GETS THE REQUEST BODY
+      newProduct._id = uniqid(); //GIVES BODY NEW ID
+      newProduct.CreationDate = new Date(); //GIVES BODY CREATION DATE
+      productDataBase.push(newProduct); //ADDS BODY TO DATABSE
+      await writeDB(productFilePath, productDataBase); //OVERWRITES OLD DATABASE WITH NEW DATABASE
+      res.status(201).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
     }
   }
 );
 
-router.put("/:id", async (req, res, next) => {
-  try {
-    const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
-    const singleProject = projectDataBase.filter(
-      project => project.ID === req.params.id
-    );
-    if (singleProject.length > 0) {
-      const filteredDB = projectDataBase.filter(
-        project => project.ID !== req.params.id
+router.put(
+  "/:id",
+  [
+    check("name")
+      .exists()
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage("Give it a name, you bitch"),
+    check("description")
+      .exists()
+
+      .isLength({ min: 1 })
+      .withMessage("Gimmie a description man"),
+    check("brand")
+      .exists()
+      .isLength({ min: 1 })
+      .withMessage("You have to give a brand name"),
+    check("imageUrl")
+      .isURL()
+      .exists()
+      .isLength({ min: 1 })
+      .withMessage("You need to have an image of your product"),
+    check("price")
+      .exists()
+      .isNumeric()
+      .isLength({ min: 1 })
+      .withMessage("You need to have your Student ID"),
+    check("category")
+      .exists()
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage("You need to have your Student ID"),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        const err = new Error();
+        err.message = errors;
+        err.httpStatusCode = 400;
+        next(err);
+      }
+
+      const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+      const singleProduct = productDataBase.filter(
+        product => product._id === req.params.id
       );
-      console.log(singleProject);
-      const editedProject = {
-        ...req.body,
-        ID: singleProject[0].ID,
-        StudentID: singleProject[0].StudentID,
-        CreationDate: singleProject[0].CreationDate,
-        ModifiedDate: new Date(),
-      };
-      filteredDB.push(editedProject);
-      await writeDB(projectFilePath, filteredDB);
-      res.status(201).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
-    } else {
-      const err = {};
+      if (singleProduct.length > 0) {
+        const filteredDB = productDataBase.filter(
+          product => product._id !== req.params.id
+        );
+        console.log(singleProduct);
+        const editedProduct = {
+          // ...req.body,
+          // ID: singleProduct[0].ID,
+          // StudentID: singleProduct[0].StudentID,
+          // CreationDate: singleProduct[0].CreationDate,
+          // ModifiedDate: new Date(),
+
+          ...req.body,
+          updatedAt: new Date(),
+        };
+        filteredDB.push(editedProduct);
+        await writeDB(productFilePath, filteredDB);
+        res.status(201).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+      } else {
+        const err = {};
+        err.httpStatusCode = 404;
+        next(err);
+      }
+    } catch (err) {
       err.httpStatusCode = 404;
       next(err);
     }
-  } catch (err) {
-    err.httpStatusCode = 404;
-    next(err);
   }
-});
+);
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
-    const singleProject = projectDataBase.filter(
-      project => project.ID === req.params.id
+    const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+    const singleProduct = productDataBase.filter(
+      product => product._id === req.params.id
     );
-    if (singleProject.length > 0) {
-      const filteredDB = projectDataBase.filter(
-        project => project.ID !== req.params.id
+    if (singleProduct.length > 0) {
+      const filteredDB = productDataBase.filter(
+        product => product._id !== req.params.id
       );
-      await writeDB(projectFilePath, filteredDB);
+      await writeDB(productFilePath, filteredDB);
       res.status(201).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
     } else {
       const err = {};
@@ -148,7 +194,7 @@ router.delete("/:id", async (req, res, next) => {
 
 router.post(
   "/:id/uploadPhoto",
-  upload.single("projectImg"),
+  upload.single("productImg"),
   async (req, res, next) => {
     let nameArray = req.file.originalname.split(".");
     let fileType = "." + nameArray.pop();
@@ -156,7 +202,7 @@ router.post(
     console.log(fileType);
     try {
       await writeFile(
-        path.join(projectsImagePath, req.params.id + fileType),
+        path.join(productsImagePath, req.params.id + fileType),
         req.file.buffer
       );
       res.send("ok");
@@ -169,7 +215,7 @@ router.post(
 
 router.get("/:name/download", (req, res, next) => {
   const source = createReadStream(
-    path.join(projectsImagePath, `${req.params.name}`)
+    path.join(productsImagePath, `${req.params.name}`)
   );
   res.setHeader(
     "Content-Disposition",
