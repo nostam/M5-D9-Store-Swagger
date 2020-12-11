@@ -1,6 +1,6 @@
 const badRequestHandler = (err, req, res, next) => {
   if (err.httpStatusCode === 400) {
-    res.status(400).send("Bad request");
+    res.status(400).send(err);
   }
   next(err);
 };
