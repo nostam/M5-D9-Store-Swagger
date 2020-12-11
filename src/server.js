@@ -7,6 +7,7 @@ const server = express();
 const port = process.env.PORT || 3001;
 const problems = require("./services/problems");
 const {
+  badRequestHandler,
   notFoundHandler,
   unauthorizedHandler,
   forbiddenHandler,
@@ -26,6 +27,7 @@ server.use("/img", express.static(join(__dirname, "../public/img")));
 // server.use("/reviews", reviews);
 server.use("/products", products);
 server.use("/problems", problems);
+server.use(badRequestHandler);
 server.use(notFoundHandler);
 server.use(unauthorizedHandler);
 server.use(forbiddenHandler);
