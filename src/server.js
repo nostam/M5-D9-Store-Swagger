@@ -13,7 +13,7 @@ const {
   catchAllHandler,
 } = require("./errorHandling");
 const { join } = require("path");
-const os = require("os");
+
 const loggerMiddleware = (req, res, next) => {
   console.log(`Logged ${req.url} ${req.method} -- ${new Date()}`);
   next();
@@ -30,6 +30,6 @@ server.use(notFoundHandler);
 server.use(unauthorizedHandler);
 server.use(forbiddenHandler);
 server.use(catchAllHandler);
-console.log(process.;
+
 // console.log(listEndPoints(server));
 server.listen(port, () => console.log("Server is running on port: ", port));
