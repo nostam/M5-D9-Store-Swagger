@@ -33,7 +33,7 @@ router.get("/:id", async (req, res, next) => {
   try {
     const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
     const singleProject = projectDataBase.filter(
-      (project) => project.ID === req.params.id
+      project => project.ID === req.params.id
     );
     if (singleProject.length > 0) {
       res.status(201).send(singleProject); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
@@ -95,11 +95,11 @@ router.put("/:id", async (req, res, next) => {
   try {
     const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
     const singleProject = projectDataBase.filter(
-      (project) => project.ID === req.params.id
+      project => project.ID === req.params.id
     );
     if (singleProject.length > 0) {
       const filteredDB = projectDataBase.filter(
-        (project) => project.ID !== req.params.id
+        project => project.ID !== req.params.id
       );
       console.log(singleProject);
       const editedProject = {
@@ -127,11 +127,11 @@ router.delete("/:id", async (req, res, next) => {
   try {
     const projectDataBase = await readDB(projectFilePath); //RUNS FUNCTION TO GET DATABASE
     const singleProject = projectDataBase.filter(
-      (project) => project.ID === req.params.id
+      project => project.ID === req.params.id
     );
     if (singleProject.length > 0) {
       const filteredDB = projectDataBase.filter(
-        (project) => project.ID !== req.params.id
+        project => project.ID !== req.params.id
       );
       await writeDB(projectFilePath, filteredDB);
       res.status(201).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
@@ -175,7 +175,7 @@ router.get("/:name/download", (req, res, next) => {
     "Content-Disposition",
     `attachment; filename=${req.params.name}`
   );
-  pipeline(source, res, (error) => next(error));
+  pipeline(source, res, error => next(error));
 });
 
 module.exports = router;
