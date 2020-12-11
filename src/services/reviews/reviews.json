@@ -3,14 +3,14 @@
     "_id": "123455",
     "comment": "A good book but definitely I don't like many parts of the plot",
     "rate": 3,
-    "elementId": "5d318e1a8541744830bef139",
+    "elementID": "5d318e1a8541744830bef139",
     "createdAt": "2019-08-01T12:46:45.895Z"
   },
   {
     "_id": "r4mnlje8kik9190e",
     "comment": "A good book but definitely I don't like many parts of the plot",
     "rate": 0.5,
-    "elementId": "5d318e1a8541744830bef139",
+    "elementID": "5d318e1a8541744830bef139",
     "createdAt": "2020-12-11T12:31:02.365Z",
     "updatedAt": "2020-12-11T12:34:12.982Z"
   }

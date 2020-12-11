@@ -49,6 +49,25 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+router.get("/:id/reviews", async (req, res, next) => {
+  try {
+    const db = await readDB(__dirname, "../reviews/reviews.json");
+    const reviews = db.filter(
+      (entry) => entry.elementID === req.params.id.toString()
+    );
+    if (reviews.length > 0) {
+      res.send(reviews);
+    } else {
+      const error = new Error();
+      error.message = "invalid ID";
+      error.httpStatusCode = 404;
+      next(error);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post(
   "/",
   [

@@ -51,7 +51,7 @@ router.post(
       .isFloat({ min: 0, max: 5 })
       .withMessage("Rating must be a number between 0 and 5")
       .exists(),
-    body("elementId")
+    body("elementID")
       .isString()
       .isAlphanumeric()
       .withMessage("invalid element ID")
@@ -74,7 +74,7 @@ router.post(
         newEntry._id = uniqid("r");
         const products = await readDB(__dirname, "../products/products.json");
         const product = products.find(
-          (product) => product._id === req.body.elementId
+          (product) => product._id === req.body.elementID
         );
         if (
           Object.keys(product).length > 0 &&
@@ -87,7 +87,7 @@ router.post(
         db.push(newEntry);
         await writeDB(db, __dirname, "reviews.json");
         products
-          .filter((product) => product._id !== req.body.elementId)
+          .filter((product) => product._id !== req.body.elementID)
           .push(product);
         await writeDB(products, __dirname, "../products/products.json");
         res.status(201).send({ _id: newEntry._id });
@@ -139,7 +139,7 @@ router.delete("/:id", async (req, res, next) => {
 
     const products = await readDB(__dirname, "../products/products.json");
     const product = products.find(
-      (product) => product._id === req.body.elementId
+      (product) => product._id === req.body.elementID
     );
     if (
       Object.keys(product).length > 0 &&
@@ -150,7 +150,7 @@ router.delete("/:id", async (req, res, next) => {
       product.numberOfReviews = 0;
     }
     products
-      .filter((product) => product._id !== req.body.elementId)
+      .filter((product) => product._id !== req.body.elementID)
       .push(product);
     await writeDB(products, __dirname, "../products/products.json");
     res.status(202).send();
@@ -168,7 +168,7 @@ router.put(
       .isFloat({ min: 0, max: 5 })
       .withMessage("Rating must be a number between 0 and 5")
       .exists(),
-    body("elementId")
+    body("elementID")
       .isString()
       .isAlphanumeric()
       .withMessage("invalid element ID")
