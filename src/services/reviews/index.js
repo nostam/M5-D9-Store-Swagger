@@ -15,7 +15,13 @@ const { writeDB, readDB } = require("../../lib");
 router.get("/", async (req, res, next) => {
   try {
     const db = await readDB(__dirname, "reviews.json");
-    res.send(db);
+    if (db.length > 0) {
+      res.send(db);
+    } else {
+      const e = new Error();
+      e.httpStatusCode = 404;
+      next(e);
+    }
   } catch (error) {
     next(error);
   }
@@ -24,7 +30,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
   try {
     const db = await readDB(__dirname, "reviews.json");
-    const entry = db.filter((entry) => entry._id === req.params.id.toString());
+    const entry = db.find((entry) => entry._id === req.params.id.toString());
     if (entry) {
       res.send(entry);
     } else {
@@ -63,9 +69,9 @@ router.post(
         const db = await readDB(__dirname, "reviews.json");
         const newEntry = {
           ...req.body,
-          _id: uniqid("r"),
           createdAt: new Date(),
         };
+        newEntry._id = uniqid("r");
         const products = await readDB(__dirname, "../products/products.json");
         const product = products.find(
           (product) => product._id === req.body.elementId

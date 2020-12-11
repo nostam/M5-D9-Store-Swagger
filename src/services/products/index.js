@@ -2,7 +2,8 @@ const express = require("express");
 const { writeFile, createReadStream } = require("fs-extra");
 const multer = require("multer");
 // const { pipeline } = require("stream");
-const { readDB, writeDB } = require("../../lib/utilities");
+// const { readDB, writeDB } = require("../../lib/utilities");
+const { readDB, writeDB } = require("../../lib");
 const path = require("path");
 const uniqid = require("uniqid");
 const { check, validationResult } = require("express-validator");
@@ -11,39 +12,39 @@ const router = express.Router();
 const upload = multer({});
 
 const productsImagePath = path.join(__dirname, "../../../public/img/products");
-const productFilePath = path.join(__dirname, "products.json"); //GETTING FILEPATH TO JSON
+// const productFilePath = path.join(__dirname, "products.json"); //GETTING FILEPATH TO JSON
 
 router.get("/", async (req, res, next) => {
   try {
-    const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+    const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
     if (productDataBase.length > 0) {
-      res.status(201).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+      res.status(200).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
     } else {
-      const err = {};
+      const err = new Error();
       err.httpStatusCode = 404;
       next(err);
     }
   } catch (err) {
-    err.httpStatusCode = 404;
+    // err.httpStatusCode = 404;
     next(err);
   }
 });
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
-    const singleProduct = productDataBase.filter(
-      product => product._id === req.params.id
+    const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
+    const singleProduct = productDataBase.find(
+      (product) => product._id === req.params.id
     );
-    if (singleProduct.length > 0) {
-      res.status(201).send(singleProduct); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+    if (Object.keys(singleProduct).length > 0) {
+      res.status(200).send(singleProduct); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
     } else {
-      const err = {};
+      const err = new Error();
       err.httpStatusCode = 404;
       next(err);
     }
   } catch (err) {
-    err.httpStatusCode = 404;
+    // err.httpStatusCode = 404;
     next(err);
   }
 });
@@ -51,42 +52,53 @@ router.get("/:id", async (req, res, next) => {
 router.post(
   "/",
   [
-    check("Name")
+    check("name").exists().isLength({ min: 1 }).withMessage("Invalid name"),
+    check("description")
       .exists()
-      .isLength({ min: 1 })
-      .withMessage("Give it a name, you bitch"),
-    check("Description")
-      .exists()
-      .isLength({ min: 1 })
+      .isString()
+      .isLength({ min: 2 })
+      .ltrim()
       .withMessage("Gimmie a description man"),
-    check("RepoURL")
+    check("brand")
       .exists()
-      .isLength({ min: 1 })
-      .withMessage("You have to give a URL for the product repository"),
-    check("LiveURL")
+      .isString()
+      .isLength({ min: 2 })
+      .withMessage("Invalid brand name"),
+    check("imageUrl").exists().isURL().withMessage("Invalid image url"),
+    check("price")
       .exists()
-      .isLength({ min: 1 })
-      .withMessage("You need to have a live demo of your product"),
-    check("StudentID")
-      .exists()
-      .isLength({ min: 1 })
-      .withMessage("You need to have your Student ID"),
+      .isInt()
+      .isFloat({ min: 0 })
+      .withMessage("Invalid price"),
+    check("category")
+      .isAlpha()
+      .isLowercase()
+      .isLength({ min: 2 })
+      .withMessage("invalid categories")
+      .exists(),
   ],
   async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const err = {};
-      err.message = errors;
-      err.httpStatusCode = 400;
-      next(err);
-    } else {
-      const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
-      const newProduct = req.body; //GETS THE REQUEST BODY
-      newProduct._id = uniqid(); //GIVES BODY NEW ID
-      newProduct.CreationDate = new Date(); //GIVES BODY CREATION DATE
-      productDataBase.push(newProduct); //ADDS BODY TO DATABSE
-      await writeDB(productFilePath, productDataBase); //OVERWRITES OLD DATABASE WITH NEW DATABASE
-      res.status(201).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const err = new Error();
+        err.message = errors.array();
+        err.httpStatusCode = 400;
+        console.log(err.message);
+        next(err);
+      } else {
+        const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
+        const newProduct = {
+          ...req.body,
+          _id: uniqid("p"),
+          createdAt: new Date(),
+        }; //GIVES BODY CREATION DATE
+        productDataBase.push(newProduct); //ADDS BODY TO DATABSE
+        await writeDB(productDataBase, __dirname, "products.json"); //OVERWRITES OLD DATABASE WITH NEW DATABASE
+        res.status(201).send({ id: newProduct._id }); //SENDS RESPONSE WITH NEW PRODUCTS ID
+      }
+    } catch (error) {
+      next(error);
     }
   }
 );
@@ -94,35 +106,30 @@ router.post(
 router.put(
   "/:id",
   [
-    check("name")
-      .exists()
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage("Give it a name, you bitch"),
+    check("name").exists().isLength({ min: 1 }).withMessage("Invalid name"),
     check("description")
       .exists()
-
-      .isLength({ min: 1 })
+      .isString()
+      .isLength({ min: 2 })
+      .ltrim()
       .withMessage("Gimmie a description man"),
     check("brand")
       .exists()
-      .isLength({ min: 1 })
-      .withMessage("You have to give a brand name"),
-    check("imageUrl")
-      .isURL()
-      .exists()
-      .isLength({ min: 1 })
-      .withMessage("You need to have an image of your product"),
+      .isString()
+      .isLength({ min: 2 })
+      .withMessage("Invalid brand name"),
+    check("imageUrl").exists().isURL().withMessage("Invalid image url"),
     check("price")
       .exists()
-      .isNumeric()
-      .isLength({ min: 1 })
-      .withMessage("You need to have your Student ID"),
+      .isInt()
+      .isFloat({ min: 0 })
+      .withMessage("Invalid price"),
     check("category")
-      .exists()
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage("You need to have your Student ID"),
+      .isAlpha()
+      .isLowercase()
+      .isLength({ min: 2 })
+      .withMessage("invalid categories")
+      .exists(),
   ],
   async (req, res, next) => {
     try {
@@ -135,13 +142,13 @@ router.put(
         next(err);
       }
 
-      const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
-      const singleProduct = productDataBase.filter(
-        product => product._id === req.params.id
+      const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
+      const singleProduct = productDataBase.find(
+        (product) => product._id === req.params.id
       );
-      if (singleProduct.length > 0) {
+      if (Object.keys(singleProduct).length > 0) {
         const filteredDB = productDataBase.filter(
-          product => product._id !== req.params.id
+          (product) => product._id !== req.params.id
         );
         console.log(singleProduct);
         const editedProduct = {
@@ -155,15 +162,15 @@ router.put(
           updatedAt: new Date(),
         };
         filteredDB.push(editedProduct);
-        await writeDB(productFilePath, filteredDB);
-        res.status(201).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+        await writeDB(filteredDB, __dirname, "products.json");
+        res.status(201).send({ _id: editedProduct._id }); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
       } else {
-        const err = {};
+        const err = new Error();
         err.httpStatusCode = 404;
         next(err);
       }
     } catch (err) {
-      err.httpStatusCode = 404;
+      // err.httpStatusCode = 404;
       next(err);
     }
   }
@@ -171,16 +178,16 @@ router.put(
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    const productDataBase = await readDB(productFilePath); //RUNS FUNCTION TO GET DATABASE
+    const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
     const singleProduct = productDataBase.filter(
-      product => product._id === req.params.id
+      (product) => product._id === req.params.id
     );
     if (singleProduct.length > 0) {
       const filteredDB = productDataBase.filter(
-        product => product._id !== req.params.id
+        (product) => product._id !== req.params.id
       );
-      await writeDB(productFilePath, filteredDB);
-      res.status(201).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+      await writeDB(filteredDB, __dirname, "products.json");
+      res.status(204).send();
     } else {
       const err = {};
       err.httpStatusCode = 404;
@@ -193,19 +200,32 @@ router.delete("/:id", async (req, res, next) => {
 });
 
 router.post(
-  "/:id/uploadPhoto",
+  "/:id/upload",
   upload.single("productImg"),
   async (req, res, next) => {
-    let nameArray = req.file.originalname.split(".");
-    let fileType = "." + nameArray.pop();
-    console.log(nameArray);
-    console.log(fileType);
     try {
-      await writeFile(
-        path.join(productsImagePath, req.params.id + fileType),
-        req.file.buffer
-      );
-      res.send("ok");
+      const filenameArr = req.file.originalname.split(".");
+      const filename =
+        req.params.id + "." + filenameArr[filenameArr.length - 1];
+
+      const db = await readDB(__dirname, "products.json");
+      const product = db.find((entry) => (entry._id = req.params.id));
+      const src = new URL(
+        `https://${req.get("host")}/public/img/products/${filename}`
+      ).href;
+      if (Object.keys(product).length > 0) {
+        await writeFile(join(productsImgDir, filename), req.file.buffer);
+        const newEntry = { ...product, imageUrl: src, updateAt: newDate() };
+        const newDB = db.filter((entry !== entry._id) !== req.params.id);
+        newDB.push(newEntry);
+        writeDB(newDB, __dirname, "products.json");
+        res.status(201).send();
+      } else {
+        const err = new Error();
+        err.message = "invalid ID";
+        err.httpStatusCode = 404;
+        next(err);
+      }
     } catch (error) {
       console.log(error);
       next(error);
@@ -213,15 +233,36 @@ router.post(
   }
 );
 
-router.get("/:name/download", (req, res, next) => {
-  const source = createReadStream(
-    path.join(productsImagePath, `${req.params.name}`)
-  );
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=${req.params.name}`
-  );
-  pipeline(source, res, error => next(error));
-});
+// router.post(
+//   "/:id/uploadPhoto",
+//   upload.single("productImg"),
+//   async (req, res, next) => {
+//     let nameArray = req.file.originalname.split(".");
+//     let fileType = "." + nameArray.pop();
+//     console.log(nameArray);
+//     console.log(fileType);
+//     try {
+//       await writeFile(
+//         path.join(productsImagePath, req.params.id + fileType),
+//         req.file.buffer
+//       );
+//       res.send("ok");
+//     } catch (error) {
+//       console.log(error);
+//       next(error);
+//     }
+//   }
+// );
+
+// router.get("/:name/download", (req, res, next) => {
+//   const source = createReadStream(
+//     path.join(productsImagePath, `${req.params.name}`)
+//   );
+//   res.setHeader(
+//     "Content-Disposition",
+//     `attachment; filename=${req.params.name}`
+//   );
+//   pipeline(source, res, (error) => next(error));
+// });
 
 module.exports = router;
