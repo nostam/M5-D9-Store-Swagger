@@ -17,4 +17,9 @@ async function writeDB(newDB, dir, file) {
   }
 }
 
-module.exports = { readDB, writeDB };
+const sortObject = async (obj) =>
+  Object.keys(obj)
+    .sort()
+    .reduce((result, key) => ((result[key] = obj[key]), result), {});
+
+module.exports = { readDB, writeDB, sortObject };
