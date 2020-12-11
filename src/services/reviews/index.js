@@ -56,7 +56,7 @@ router.post(
       const err = validationResult(req);
       if (!err.isEmpty()) {
         const e = new Error();
-        e.message = err;
+        e.message = err.array();
         e.httpStatusCode = 400;
         next(e);
       } else {
@@ -156,7 +156,8 @@ router.delete("/:id", async (req, res, next) => {
 router.put(
   "/:id",
   [
-    body("comment").isString().ltrim(),
+    body("_id").isAlphanumeric().exists(),
+    body("comment").isString().ltrim().optional(),
     body("rate")
       .isFloat({ min: 0, max: 5 })
       .withMessage("Rating must be a number between 0 and 5")
@@ -175,7 +176,6 @@ router.put(
         const e = new Error();
         e.message = { errors: err.array() };
         e.httpStatusCode = 400;
-        console.log(err, e);
         next(e);
       } else {
         const db = await readDB(__dirname, "reviews.json");
