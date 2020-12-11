@@ -31,5 +31,5 @@ server.use(unauthorizedHandler);
 server.use(forbiddenHandler);
 server.use(catchAllHandler);
 
-// console.log(listEndPoints(server));
+console.log(listEndPoints(server));
 server.listen(port, () => console.log("Server is running on port: ", port));
