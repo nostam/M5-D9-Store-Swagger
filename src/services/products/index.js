@@ -16,13 +16,27 @@ const productsImagePath = path.join(__dirname, "../../../public/img/products");
 
 router.get("/", async (req, res, next) => {
   try {
-    const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
-    if (productDataBase.length > 0) {
-      res.status(200).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+    if (!req.query.category) {
+      const productDataBase = await readDB(__dirname, "products.json"); //RUNS FUNCTION TO GET DATABASE
+      if (productDataBase.length > 0) {
+        res.status(200).send(productDataBase); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+      } else {
+        const err = new Error();
+        err.httpStatusCode = 404;
+        next(err);
+      }
     } else {
-      const err = new Error();
-      err.httpStatusCode = 404;
-      next(err);
+      const db = await readDB(__dirname, "products.json");
+      const filteredDB = db.filter(
+        (entry) => entry.category === req.query.category.toString()
+      );
+      if (filteredDB.length > 0) {
+        res.status(200).send(filteredDB); //SENDS RESPONSE WITH GOOD CODE AND WHOLE DATABSE
+      } else {
+        const err = new Error();
+        err.httpStatusCode = 404;
+        next(err);
+      }
     }
   } catch (err) {
     // err.httpStatusCode = 404;
