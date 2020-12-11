@@ -9,7 +9,24 @@ const uniqid = require("uniqid");
 const { check, validationResult } = require("express-validator");
 const router = express.Router();
 
-const upload = multer({});
+const upload = multer({
+  fileFilter: function (req, file, callback) {
+    const ext = path.extname(file.originalname);
+    const mime = file.mimetype;
+    if (
+      ext !== ".jpg" &&
+      ext !== ".jpeg" &&
+      ext !== ".png" &&
+      mime !== "image/png" &&
+      mime !== "image/jpg" &&
+      mime !== "image/jpeg"
+    ) {
+      return callback(new Error("Only images are allowed"));
+    }
+    callback(null, true);
+  },
+  limits: { fileSize: 200000 },
+});
 
 const productsImagePath = path.join(__dirname, "../../../public/img/products");
 // const productFilePath = path.join(__dirname, "products.json"); //GETTING FILEPATH TO JSON
@@ -97,7 +114,11 @@ router.post(
       .isString()
       .isLength({ min: 2 })
       .withMessage("Invalid brand name"),
-    check("imageUrl").exists().isURL().withMessage("Invalid image url"),
+    check("imageUrl")
+      .exists()
+      .isURL()
+      .matches("(jpg|png|jpeg|bmp)")
+      .withMessage("Invalid image url"),
     check("price")
       .exists()
       .isInt()
@@ -151,7 +172,11 @@ router.put(
       .isString()
       .isLength({ min: 2 })
       .withMessage("Invalid brand name"),
-    check("imageUrl").exists().isURL().withMessage("Invalid image url"),
+    check("imageUrl")
+      .exists()
+      .isURL()
+      .matches("(jpg|png|jpeg|bmp)")
+      .withMessage("Invalid image url"),
     check("price")
       .exists()
       .isInt()
@@ -240,18 +265,19 @@ router.post(
       const filenameArr = req.file.originalname.split(".");
       const filename =
         req.params.id + "." + filenameArr[filenameArr.length - 1];
-
       const db = await readDB(__dirname, "products.json");
       const product = db.find((entry) => (entry._id = req.params.id));
-      const src = new URL(
-        `https://${req.get("host")}/public/img/products/${filename}`
-      ).href;
+      const src = new URL(`http://${req.get("host")}/img/products/${filename}`)
+        .href;
       if (Object.keys(product).length > 0) {
-        await writeFile(join(productsImgDir, filename), req.file.buffer);
-        const newEntry = { ...product, imageUrl: src, updateAt: newDate() };
-        const newDB = db.filter((entry !== entry._id) !== req.params.id);
+        await writeFile(
+          path.join(productsImagePath, filename),
+          req.file.buffer
+        );
+        const newEntry = { ...product, imageUrl: src, updateAt: new Date() };
+        const newDB = db.filter((entry) => entry._id !== req.params.id);
         newDB.push(newEntry);
-        writeDB(newDB, __dirname, "products.json");
+        await writeDB(newDB, __dirname, "products.json");
         res.status(201).send();
       } else {
         const err = new Error();
