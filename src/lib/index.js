@@ -9,9 +9,9 @@ async function readDB(dir, file) {
     throw new Error(error);
   }
 }
-async function writeDB(db, dir, file) {
+async function writeDB(newDB, dir, file) {
   try {
-    await writeJson(join(dir, file), db);
+    await writeJson(join(dir, file), newDB);
   } catch (error) {
     throw new Error(error);
   }
