@@ -44,12 +44,11 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
         e.httpStatusCode = 404;
         next(e);
       } else {
-        const updatedCart = cart.products.push(product);
-        const newTotal = cart.total++;
-        updatedCart.total = newTotal;
+        cart.products.push({ _id: product._id });
+        cart.total = cart.products.length;
         const updatedDB = [
           ...db.slice(0, cartIndex),
-          { ...cart, ...updatedCart },
+          { ...cart },
           ...db.slice(cartIndex + 1),
         ];
         await writeDB(updatedDB, __dirname, "carts.json");
@@ -85,17 +84,22 @@ router.delete(
           const e = new Error();
           e.message = "invalid product ID";
           e.httpStatusCode = 404;
-          console.log(error);
           next(e);
         } else {
-          const updatedCart = cart.products.filter(
+          const quantity = cart.products.filter(
+            (product) => product._id === req.params.productID
+          );
+          const newProduct = cart.products.filter(
             (product) => product._id !== req.params.productID
           );
-          const newTotal = cart.total++;
-          updatedCart.total = newTotal;
+          if (quantity.length > 1) {
+            newProduct.push(quantity.pop());
+          }
+          const updatedCart = { ...cart, products: newProduct };
+          updatedCart.total = updatedCart.products.length;
           const updatedDB = [
             ...db.slice(0, cartIndex),
-            { ...db[cartIndex], ...updatedCart },
+            { ...updatedCart },
             ...db.slice(cartIndex + 1),
           ];
           await writeDB(updatedDB, __dirname, "carts.json");
