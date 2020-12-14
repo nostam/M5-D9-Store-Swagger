@@ -19,7 +19,7 @@ router.get("/:cartID", async (req, res, next) => {
           db.find((entry) => entry._id === product._id)
         );
         cart.total = cart.products.reduce((acc, cv) => {
-          return acc + cv;
+          return acc + cv.price;
         }, 0);
         res.send(cart);
       } else {
@@ -44,7 +44,7 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
     const cart = db.find((entry) => entry._id === req.params.cartID);
     const cartIndex = db.findIndex((entry) => entry._id === req.params.cartID);
     if (cartIndex !== -1) {
-      const products = await readDB(__dirname, "../products/products.json");
+      const products = await readDB(productsJson);
       const product = products.find(
         (product) => product._id === req.params.productID
       );
@@ -62,7 +62,7 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
           ...db.slice(cartIndex + 1),
         ];
         await writeDB(updatedDB, cartsJson);
-        res.status(201).send();
+        res.status(201).send(cart);
       }
     } else {
       const e = new Error();
@@ -113,7 +113,7 @@ router.delete(
             ...db.slice(cartIndex + 1),
           ];
           await writeDB(updatedDB, cartsJson);
-          res.status(200).send();
+          res.status(200).send(cart);
         }
       } else {
         const e = new Error();
