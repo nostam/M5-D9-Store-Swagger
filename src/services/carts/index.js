@@ -45,10 +45,11 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
         next(e);
       } else {
         const updatedCart = cart.products.push(product);
-        updatedCart.total++;
+        const newTotal = cart.total++;
+        updatedCart.total = newTotal;
         const updatedDB = [
           ...db.slice(0, cartIndex),
-          { ...db[cartIndex], ...updatedCart },
+          { ...cart, ...updatedCart },
           ...db.slice(cartIndex + 1),
         ];
         await writeDB(updatedDB, __dirname, "carts.json");
@@ -89,10 +90,11 @@ router.delete(
           const updatedCart = cart.products.filter(
             (product) => product._id !== req.params.productID
           );
-          updatedCart.total--;
+          const newTotal = cart.total++;
+          updatedCart.total = newTotal;
           const updatedDB = [
             ...db.slice(0, cartIndex),
-            { ...db[cartIndex], ...updatedCart },
+            { ...cart, ...updatedCart },
             ...db.slice(cartIndex + 1),
           ];
           await writeDB(updatedDB, __dirname, "carts.json");
