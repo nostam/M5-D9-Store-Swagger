@@ -53,7 +53,7 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
           ...db.slice(cartIndex + 1),
         ];
         await writeDB(updatedDB, __dirname, "carts.json");
-        res.status(201).send(updatedCart);
+        res.status(201).send();
       }
     } else {
       const e = new Error();
@@ -85,6 +85,7 @@ router.delete(
           const e = new Error();
           e.message = "invalid product ID";
           e.httpStatusCode = 404;
+          console.log(error);
           next(e);
         } else {
           const updatedCart = cart.products.filter(
@@ -94,11 +95,11 @@ router.delete(
           updatedCart.total = newTotal;
           const updatedDB = [
             ...db.slice(0, cartIndex),
-            { ...cart, ...updatedCart },
+            { ...db[cartIndex], ...updatedCart },
             ...db.slice(cartIndex + 1),
           ];
           await writeDB(updatedDB, __dirname, "carts.json");
-          res.status(200).send(updatedCart);
+          res.status(200).send();
         }
       } else {
         const e = new Error();
