@@ -1,17 +1,16 @@
 const { writeJson, readJson } = require("fs-extra");
-const { join } = require("path");
 
-async function readDB(dir, file) {
+async function readDB(filepath) {
   try {
-    const fileJson = await readJson(join(dir, file));
+    const fileJson = await readJson(filepath);
     return fileJson;
   } catch (error) {
     throw new Error(error);
   }
 }
-async function writeDB(newDB, dir, file) {
+async function writeDB(newDB, filepath) {
   try {
-    await writeJson(join(dir, file), newDB);
+    await writeJson(filepath, newDB);
   } catch (error) {
     throw new Error(error);
   }
