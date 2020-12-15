@@ -20,7 +20,21 @@ const loggerMiddleware = (req, res, next) => {
   console.log(`Logged ${req.url} ${req.method} -- ${new Date()}`);
   next();
 };
-server.use(cors());
+
+const whiteList =
+  process.env.NODE_ENV === "production"
+    ? [process.env.FE_URL_PROD]
+    : [process.env.FE_URL_DEV];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whiteList.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("NOT ALLOWED - CORS ISSUES"));
+    }
+  },
+};
+server.use(cors(corsOptions));
 server.use(express.json());
 server.use(loggerMiddleware);
 
@@ -35,5 +49,12 @@ server.use(unauthorizedHandler);
 server.use(forbiddenHandler);
 server.use(catchAllHandler);
 
-// console.log(listEndPoints(server));
-server.listen(port, () => console.log("Server is running on port: ", port));
+console.log(listEndPoints(server));
+
+server.listen(port, () => {
+  if (process.env.NODE_ENV === "production") {
+    console.log("Running on cloud on port", port);
+  } else {
+    console.log("Running locally on port", port);
+  }
+});
