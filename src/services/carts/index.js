@@ -8,6 +8,14 @@ const { join } = require("path");
 const cartsJson = join(__dirname, "carts.json");
 const productsJson = join(__dirname, "../products/products.json");
 
+//TODO : build a function to regen cart to FE for post and delete aswell
+const err = (msg) => {
+  const e = new Error();
+  e.message = "msg";
+  e.httpStatusCode = 404;
+  return next(e);
+};
+
 router.get("/:cartID", async (req, res, next) => {
   try {
     const carts = await readDB(cartsJson);
@@ -23,15 +31,10 @@ router.get("/:cartID", async (req, res, next) => {
         }, 0);
         res.send(cart);
       } else {
-        const e = new Error();
-        e.message = "invalid user"; //users existence is hardcoded for now
-        e.httpStatusCode = 404;
-        next(e);
+        err("invalid user");
       }
     } else {
-      const e = new Error();
-      e.httpStatusCode = 404;
-      next(e);
+      throw Error();
     }
   } catch (error) {
     next(error);
@@ -49,10 +52,7 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
         (product) => product._id === req.params.productID
       );
       if (Object.keys(product).length <= 0) {
-        const e = new Error();
-        e.message = "invalid product ID";
-        e.httpStatusCode = 404;
-        next(e);
+        err("invalid product ID");
       } else {
         cart.products.push({ _id: product._id });
         cart.total = cart.products.length;
@@ -62,13 +62,10 @@ router.post("/:cartID/add-to-cart/:productID", async (req, res, next) => {
           ...db.slice(cartIndex + 1),
         ];
         await writeDB(updatedDB, cartsJson);
-        res.status(201).send(cart);
+        res.status(201).send();
       }
     } else {
-      const e = new Error();
-      e.message = "invalid user";
-      e.httpStatusCode = 404;
-      next(e);
+      err("invalid user");
     }
   } catch (error) {
     console.log(error);
@@ -91,10 +88,7 @@ router.delete(
           (product) => product._id === req.params.productID
         );
         if (Object.keys(product).length < 0) {
-          const e = new Error();
-          e.message = "invalid product ID";
-          e.httpStatusCode = 404;
-          next(e);
+          err("invalid product ID");
         } else {
           const quantity = cart.products.filter(
             (product) => product._id === req.params.productID
@@ -113,13 +107,10 @@ router.delete(
             ...db.slice(cartIndex + 1),
           ];
           await writeDB(updatedDB, cartsJson);
-          res.status(200).send(cart);
+          res.status(200).send();
         }
       } else {
-        const e = new Error();
-        e.message = "invalid user";
-        e.httpStatusCode = 404;
-        next(e);
+        err("invalid user");
       }
     } catch (error) {
       next(error);
