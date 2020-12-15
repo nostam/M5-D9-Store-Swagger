@@ -1,12 +1,13 @@
 const express = require("express");
 const listEndPoints = require("express-list-endpoints");
 const cors = require("cors");
-const reviews = require("./services/reviews/");
-const products = require("./services/products/");
+const reviews = require("./services/reviews");
+const products = require("./services/products");
 const carts = require("./services/carts");
+const books = require("./services/books");
 const server = express();
 const port = process.env.PORT || 3001;
-const problems = require("./services/problems");
+// const problems = require("./services/problems");
 const {
   badRequestHandler,
   notFoundHandler,
@@ -42,14 +43,15 @@ server.use("/img", express.static(join(__dirname, "../public/img")));
 server.use("/reviews", reviews);
 server.use("/products", products);
 server.use("/carts", carts);
-server.use("/problems", problems);
+server.use("/books", books);
+// server.use("/problems", problems);
 server.use(badRequestHandler);
 server.use(notFoundHandler);
 server.use(unauthorizedHandler);
 server.use(forbiddenHandler);
 server.use(catchAllHandler);
 
-console.log(listEndPoints(server));
+// console.log(listEndPoints(server));
 
 server.listen(port, () => {
   if (process.env.NODE_ENV === "production") {
