@@ -11,7 +11,7 @@ const productsJson = join(__dirname, "../products/products.json");
 //TODO : build a function to regen cart to FE for post and delete aswell
 const err = (msg) => {
   const e = new Error();
-  e.message = "msg";
+  e.message = msg;
   e.httpStatusCode = 404;
   return next(e);
 };
