@@ -2,19 +2,11 @@ const express = require("express");
 const uniqid = require("uniqid");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
-const { writeDB, readDB } = require("../../lib");
+const { writeDB, readDB, err } = require("../../lib");
 const { join } = require("path");
 
 const cartsJson = join(__dirname, "carts.json");
 const productsJson = join(__dirname, "../products/products.json");
-
-//TODO : build a function to regen cart to FE for post and delete aswell
-const err = (msg) => {
-  const e = new Error();
-  e.message = msg;
-  e.httpStatusCode = 404;
-  return next(e);
-};
 
 router.get("/:cartID", async (req, res, next) => {
   try {
