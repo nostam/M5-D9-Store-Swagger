@@ -85,7 +85,6 @@ router.get("/", async (req, res, next) => {
       }
     }
   } catch (err) {
-    // err.httpStatusCode = 404;
     next(err);
   }
 });
