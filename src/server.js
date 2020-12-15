@@ -34,9 +34,8 @@ const corsOptions = {
     }
   },
 };
-
-server.use(express.json());
 server.use(cors(corsOptions));
+server.use(express.json());
 server.use(loggerMiddleware);
 
 server.use("/img", express.static(join(__dirname, "../public/img")));
