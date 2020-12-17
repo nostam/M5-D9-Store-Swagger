@@ -100,8 +100,8 @@ router.get("/sumTwoPrices", async (req, res, next) => {
   try {
     const db = await readDB(productsJson);
     const { a, b } = req.query;
-    const findPrice = (_id) => {
-      return parseInt(db.find((entry) => entry._id === a).price);
+    const findPrice = (id) => {
+      return parseInt(db.find((entry) => entry._id === id).price);
     };
     const aPrice = findPrice(a);
     const bPrice = findPrice(b);
