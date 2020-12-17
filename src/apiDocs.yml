@@ -7,7 +7,7 @@ servers:
   - url: http://localhost:3001
     description: Local server
   - url: https://strive-hw-endpt.herokuapp.com
-    description: Cloud server
+    description: Cloud servre
 tags:
   - name: Products
     description: Products API
@@ -173,10 +173,6 @@ paths:
           description: Successful operation
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Reviews"
         "404":
           description: Cannot find query product ID in database
 

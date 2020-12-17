@@ -1,19 +1,31 @@
 const express = require("express");
-const { writeFile, createReadStream } = require("fs-extra");
-const multer = require("multer");
-// const { pipeline } = require("stream");
+const { writeFile, createReadStream, createWriteStream } = require("fs-extra");
+const { pipeline } = require("stream");
 const { readDB, writeDB } = require("../../lib");
 const { join } = require("path");
 const uniqid = require("uniqid");
 const { check, validationResult } = require("express-validator");
 const router = express.Router();
 
+const { Transform } = require("json2csv");
 const { parseString } = require("xml2js");
 const axios = require("axios");
 const { promisify } = require("util");
 const { begin } = require("xmlbuilder");
 const asyncParser = promisify(parseString);
 
+const pdfPrinter = require("pdfmake");
+
+const fonts = {
+  GenShinGothic: {
+    normal: "src/assets/fonts/GenShinGothic/GenShinGothic-Normal.ttf",
+    bold: "src/assets/fonts/GenShinGothic/GenShinGothic-Normal.ttf",
+    italics: "src/assets/fonts/GenShinGothic/GenShinGothic-Normal.ttf",
+    bolditalics: "src/assets/fonts/GenShinGothic/GenShinGothic-Normal.ttf",
+  },
+};
+
+const multer = require("multer");
 const upload = multer({
   fileFilter: function (req, file, callback) {
     const ext = path.extname(file.originalname);
@@ -107,12 +119,12 @@ router.get("/sumTwoPrices", async (req, res, next) => {
     const bPrice = findPrice(b);
 
     const xmlBody = begin()
-      .ele("soap:Envelope", {
+      .ele("soap12:Envelope", {
         "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
         "xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
-        "xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+        "xmlns:soap12": "http://www.w3.org/2003/05/soap-envelope",
       })
-      .ele("soap:Body")
+      .ele("soap12:Body")
       .ele("Add", {
         xmlns: "http://tempuri.org/",
       })
@@ -136,6 +148,92 @@ router.get("/sumTwoPrices", async (req, res, next) => {
         "AddResult"
       ][0]
     );
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+router.get("/exportToCSV", async (req, res, next) => {
+  try {
+    console.log("csv");
+    const src = createReadStream(productsJson);
+    const productsCSV = new Transform({
+      field: [
+        "_id",
+        "name",
+        "description",
+        "brand",
+        "imageUrl",
+        "price",
+        "category",
+        "createdAt",
+        "updatedAt",
+      ],
+    });
+
+    res.setHeader("Content-Disposition", "attachement; filename=products.csv");
+
+    pipeline(src, productsCSV, res, (err) => {
+      if (err) {
+        console.log(err);
+        next(err);
+      } else {
+        console.log("export completed");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+router.get("/exportToPDF", async (req, res, next) => {
+  try {
+    const printer = new pdfPrinter(fonts);
+    const pdfDefinition = {
+      content: [
+        {
+          columns: [
+            {
+              width: "auto",
+              text: "Column 1",
+            },
+            {
+              width: "*",
+              text: "Column 2",
+            },
+            {
+              width: 100,
+              text: "Column 3",
+            },
+            {
+              width: "20%",
+              text: "Column 4",
+            },
+          ],
+          columnGap: 10,
+        },
+      ],
+      defaultStyle: {
+        font: "GenShinGothic",
+      },
+    };
+
+    const pdfDoc = printer.createPdfKitDocument(pdfDefinition);
+    const pdfPath = join("public", "products.pdf");
+    pdfDoc.pipe(createWriteStream(pdfPath));
+    pdfDoc.end();
+
+    res.setHeader("Content-Disposition", `attachment; filename=products.pdf`);
+    pipeline(createReadStream(pdfPath), res, (err) => {
+      if (err) {
+        console.log(err);
+        next(err);
+      } else {
+        console.log("export completed");
+      }
+    });
   } catch (error) {
     console.log(error);
     next(error);
