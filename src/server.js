@@ -6,8 +6,10 @@ const products = require("./services/products");
 const carts = require("./services/carts");
 const books = require("./services/books");
 const server = express();
-const helmet = require("helmet");
 const port = process.env.PORT || 3001;
+const helmet = require("helmet");
+const yaml = require("yamljs");
+const swaggerUI = require("swagger-ui-express");
 // const problems = require("./services/problems");
 const {
   badRequestHandler,
@@ -36,17 +38,19 @@ const corsOptions = {
     }
   },
 };
+const swaggerDoc = yaml.load(join(__dirname, "apiDocs.yml"));
+
 server.use(helmet());
-server.use(cors(corsOptions));
+server.use(cors());
 server.use(express.json());
 server.use(loggerMiddleware);
 
+server.use("/docs", swaggerUI.serve, swaggerUI.setup(swaggerDoc));
 server.use("/img", express.static(join(__dirname, "../public/img")));
 server.use("/reviews", reviews);
 server.use("/products", products);
 server.use("/carts", carts);
 server.use("/books", books);
-// server.use("/problems", problems);
 server.use(badRequestHandler);
 server.use(notFoundHandler);
 server.use(unauthorizedHandler);

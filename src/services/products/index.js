@@ -131,8 +131,6 @@ router.get("/sumTwoPrices", async (req, res, next) => {
     });
     const xml = response.data;
     const parsedJS = await asyncParser(xml);
-    console.log(parsedJS);
-    // res.send(parsedJS);
     res.send(
       parsedJS["soap:Envelope"]["soap:Body"][0]["AddResponse"][0][
         "AddResult"
