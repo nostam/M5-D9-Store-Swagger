@@ -6,6 +6,7 @@ const products = require("./services/products");
 const carts = require("./services/carts");
 const books = require("./services/books");
 const server = express();
+const helmet = require("helmet");
 const port = process.env.PORT || 3001;
 // const problems = require("./services/problems");
 const {
@@ -35,6 +36,7 @@ const corsOptions = {
     }
   },
 };
+server.use(helmet());
 server.use(cors(corsOptions));
 server.use(express.json());
 server.use(loggerMiddleware);

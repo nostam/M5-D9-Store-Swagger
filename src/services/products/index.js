@@ -8,6 +8,12 @@ const uniqid = require("uniqid");
 const { check, validationResult } = require("express-validator");
 const router = express.Router();
 
+const { parseString } = require("xml2js");
+const axios = require("axios");
+const { promisify } = require("util");
+const { begin } = require("xmlbuilder");
+const asyncParser = promisify(parseString);
+
 const upload = multer({
   fileFilter: function (req, file, callback) {
     const ext = path.extname(file.originalname);
@@ -87,6 +93,54 @@ router.get("/", async (req, res, next) => {
   } catch (err) {
     // err.httpStatusCode = 404;
     next(err);
+  }
+});
+
+router.get("/sumTwoPrices", async (req, res, next) => {
+  try {
+    const db = await readDB(productsJson);
+    const { a, b } = req.query;
+    const findPrice = (_id) => {
+      return parseInt(db.find((entry) => entry._id === a).price);
+    };
+    const aPrice = findPrice(a);
+    const bPrice = findPrice(b);
+
+    const xmlBody = begin()
+      .ele("soap:Envelope", {
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
+        "xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+      })
+      .ele("soap:Body")
+      .ele("Add", {
+        xmlns: "http://tempuri.org/",
+      })
+      .ele("intA")
+      .text(aPrice)
+      .up()
+      .ele("intB")
+      .text(bPrice)
+      .end();
+
+    const response = await axios({
+      method: "post",
+      url: "http://www.dneonline.com/calculator.asmx?op=Add",
+      data: xmlBody,
+      headers: { "Content-type": "text/xml" },
+    });
+    const xml = response.data;
+    const parsedJS = await asyncParser(xml);
+    console.log(parsedJS);
+    // res.send(parsedJS);
+    res.send(
+      parsedJS["soap:Envelope"]["soap:Body"][0]["AddResponse"][0][
+        "AddResult"
+      ][0]
+    );
+  } catch (error) {
+    console.log(error);
+    next(error);
   }
 });
 
