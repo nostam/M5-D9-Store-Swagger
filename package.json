@@ -1,5 +1,5 @@
 {
-  "name": "m5-d7-store-be",
+  "name": "m5-d9-store-be-swagger",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -16,13 +16,22 @@
     "nodemon": "^2.0.6"
   },
   "dependencies": {
+    "axois": "0.0.1-security",
+    "cloudinary": "^1.23.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-list-endpoints": "^5.0.0",
     "express-validator": "^6.8.0",
     "fs-extra": "^9.0.1",
+    "helmet": "^4.2.0",
     "init": "^0.1.2",
+    "json2csv": "^5.0.5",
+    "klaw": "^3.0.0",
     "multer": "^1.4.2",
-    "uniqid": "^5.2.0"
+    "multer-storage-cloudinary": "^4.0.0",
+    "uniqid": "^5.2.0",
+    "xml2js": "^0.4.23",
+    "xmlbuilder": "^15.1.1",
+    "yamljs": "^0.3.0"
   }
 }
