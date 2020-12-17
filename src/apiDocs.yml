@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Marketpalce API
+  description: first draft for docs
+servers:
+  - url: http://localhost:3001
+    description: Local server
+  - url: https://strive-hw-endpt.herokuapp.com
+    description: Cloud server
+tags:
+  - name: Products
+    description: Products API
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: returns products list
+      description: Extended description of GET /products route
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Filter products by category
+      responses:
+        "200":
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Products"
+        "404":
+          description: Cannot find query product ID in database
+    post:
+      tags:
+        - Products
+      summary: sumbit a new product
+      description: Extended description of POST /products route
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Products"
+        "404":
+          description: Cannot find query product ID in database
+    put:
+      tags:
+        - Products
+      summary: update a exiting product
+      description: Extended description of PUT /products route
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Products"
+        "404":
+          description: Cannot find query product ID in database
+    delete:
+      tags:
+        - Products
+      summary: delete a product from shelf
+      description: Extended description of DELETE /products route
+      responses:
+        "200":
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          description: Cannot find query product ID in database
+  /products/sumTwoPrices:
+    get:
+      tags:
+        - Products
+      summary: return sum of two products by a bleeding edge sum calculator in the cloud
+      description: We translate your request from js to integer, break it down to xml and reformat in js just for you!
+      parameters:
+        - in: query
+          name: a
+          schema:
+            type: string
+          description: input a product ID
+          required: true
+        - in: query
+          name: b
+          schema:
+            type: string
+          description: input a product ID
+          required: true
+      responses:
+        "200":
+          description: now you know the result of a when two number adds up!
+          content:
+            text/html:
+              schema:
+                type: string
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: returns a product
+      description: Extended description of GET /products route
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          description: product ID
+          required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Products"
+        "404":
+          description: Cannot find query product ID in database
+  /products/{id}/reviews:
+    get:
+      tags:
+        - Products
+      summary: returns a list of reviews for a single product
+      description: Extended description of GET /products route
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          description: product ID
+          required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Products"
+        "404":
+          description: Cannot find query product ID in database
+  /products/{id}/upload:
+    put:
+      tags:
+        - Products
+      summary: update product image
+      description: Extended description of GET /products route
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          description: product ID
+          required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reviews"
+        "404":
+          description: Cannot find query product ID in database
+
+components:
+  schemas:
+    Products:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        brand:
+          type: string
+        imageUrl:
+          type: string
+        price:
+          type: number
+      required:
+        - name
+        - brand
+        - price
+        - imageUrl
+        - category
+        - description
+    Reviews:
+      type: object
+      properties:
+        _id:
+          type: string
+        comment:
+          type: string
+        elementID:
+          type: string
+        rate:
+          type: number
+      required:
+        - name
+        - comment
+        - elementID
+        - rate
