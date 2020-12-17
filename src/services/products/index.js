@@ -156,7 +156,6 @@ router.get("/sumTwoPrices", async (req, res, next) => {
 
 router.get("/exportToCSV", async (req, res, next) => {
   try {
-    console.log("csv");
     const src = createReadStream(productsJson);
     const productsCSV = new Transform({
       field: [
