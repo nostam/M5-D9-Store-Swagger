@@ -14,6 +14,8 @@ const { promisify } = require("util");
 const { begin } = require("xmlbuilder");
 const asyncParser = promisify(parseString);
 
+const { pipeline } = require("stream");
+
 const upload = multer({
   fileFilter: function (req, file, callback) {
     const ext = path.extname(file.originalname);
@@ -136,6 +138,39 @@ router.get("/sumTwoPrices", async (req, res, next) => {
         "AddResult"
       ][0]
     );
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+router.get("/exportToCSV", async (req, res, next) => {
+  try {
+    const src = createReadStream(productsJson);
+    const productsCSV = new Transform({
+      field: [
+        "_id",
+        "name",
+        "description",
+        "brand",
+        "imageUrl",
+        "price",
+        "category",
+        "createdAt",
+        "updatedAt",
+      ],
+    });
+
+    res.setHeader("Content-Disposition", "attachement; filename=products.csv");
+
+    pipeline(src, productsCSV, res, (err) => {
+      if (err) {
+        console.log(err);
+        next(err);
+      } else {
+        console.log("export completed");
+      }
+    });
   } catch (error) {
     console.log(error);
     next(error);
